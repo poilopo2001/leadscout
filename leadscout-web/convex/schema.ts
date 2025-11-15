@@ -131,7 +131,7 @@ export default defineSchema({
    */
   companies: defineTable({
     userId: v.id("users"), // Reference to users table
-    stripeCustomerId: v.string(), // Stripe customer ID
+    stripeCustomerId: v.optional(v.string()), // Stripe customer ID (optional during onboarding)
     subscriptionId: v.optional(v.string()), // Stripe subscription ID
     plan: v.optional(v.union(
       v.literal("starter"),  // Configured via env: STARTER_PLAN_CREDITS

@@ -400,6 +400,6 @@ export function safeValidate<T>(
     return { success: true, data: result.data };
   }
 
-  const errors = result.error.errors.map((err) => `${err.path.join(".")}: ${err.message}`);
+  const errors = result.error.issues.map((err: any) => `${err.path.join(".")}: ${err.message}`);
   return { success: false, errors };
 }

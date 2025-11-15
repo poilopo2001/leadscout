@@ -15,7 +15,7 @@ import { getPayoutThreshold } from "../lib/constants";
  * Runs every Friday at 9:00 AM UTC
  */
 export const processWeeklyPayouts = internalAction({
-  handler: async (ctx) => {
+  handler: async (ctx): Promise<{ success: boolean; processed: number; succeeded: number; failed: number; results: any[] }> => {
     console.log("[Cron] Starting weekly payout processing...");
 
     try {

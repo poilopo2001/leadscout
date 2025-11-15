@@ -12,7 +12,7 @@ import { ConvexHttpClient } from "convex/browser";
 
 // Initialize Stripe
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2024-11-20.acacia",
+  apiVersion: "2025-02-24.acacia",
 });
 
 // Initialize Convex client for server-side calls
@@ -161,8 +161,7 @@ export async function POST(req: NextRequest) {
         break;
       }
 
-      case "transfer.created":
-      case "transfer.paid": {
+      case "transfer.created": {
         // Payout to scout completed
         const transfer = event.data.object as Stripe.Transfer;
 

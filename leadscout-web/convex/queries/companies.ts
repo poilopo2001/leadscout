@@ -7,7 +7,7 @@
 
 import { query } from "../_generated/server";
 import { v } from "convex/values";
-import { getCurrentCompany, getCurrentUser } from "../helpers";
+import { getCurrentCompany } from "../helpers";
 
 /**
  * Get current logged-in company profile

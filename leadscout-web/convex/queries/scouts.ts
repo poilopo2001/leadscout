@@ -7,7 +7,7 @@
 
 import { query } from "../_generated/server";
 import { v } from "convex/values";
-import { getCurrentScout, getCurrentUser } from "../helpers";
+import { getCurrentScout } from "../helpers";
 
 /**
  * Get current logged-in scout profile

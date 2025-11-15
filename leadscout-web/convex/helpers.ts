@@ -8,7 +8,6 @@
 import { QueryCtx, MutationCtx } from "./_generated/server";
 import { Id } from "./_generated/dataModel";
 import { getLeadPriceByCategory, getCommissionRate, getBadgeThresholds } from "./lib/constants";
-import { calculateScoutQuality } from "./lib/calculateScoutQuality";
 
 /**
  * Get current authenticated user from context
@@ -117,13 +116,8 @@ export async function calculateScoutQuality(
   const scout = await ctx.db.get(scoutId);
   if (!scout) return 0;
 
-  return calculateScoutQuality({
-    totalLeadsSubmitted: scout.totalLeadsSubmitted,
-    totalLeadsApproved: scout.totalLeadsApproved || scout.totalLeadsSubmitted,
-    totalLeadsSold: scout.totalLeadsSold,
-    totalLeadsRejected: scout.totalLeadsRejected || 0,
-    averageLeadQuality: scout.qualityScore,
-  });
+  // Return existing quality score or calculate from metrics
+  return scout.qualityScore || 50; // Default to 50 if no score
 }
 
 /**

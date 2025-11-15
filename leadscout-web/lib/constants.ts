@@ -14,6 +14,7 @@ export const PRICING = {
     price: parseInt(process.env.NEXT_PUBLIC_STARTER_PLAN_PRICE || "99"),
     credits: parseInt(process.env.NEXT_PUBLIC_STARTER_PLAN_CREDITS || "20"),
     interval: "month" as const,
+    popular: false,
     features: [
       "20 lead credits per month",
       "Basic support",
@@ -40,6 +41,7 @@ export const PRICING = {
     price: parseInt(process.env.NEXT_PUBLIC_SCALE_PLAN_PRICE || "499"),
     credits: parseInt(process.env.NEXT_PUBLIC_SCALE_PLAN_CREDITS || "150"),
     interval: "month" as const,
+    popular: false,
     features: [
       "150 lead credits per month",
       "API access",

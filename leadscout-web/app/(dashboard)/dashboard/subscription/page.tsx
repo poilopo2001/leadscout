@@ -13,11 +13,10 @@ import { useState } from "react";
 
 export default function SubscriptionPage() {
   const company = useQuery(api.queries.companies.getCurrentUser);
-  const billingHistory = useQuery(api.queries.companies.getBillingHistory);
-  const createCheckout = useAction(api.actions.stripe.createCheckoutSession);
+  const createSubscription = useAction(api.actions.stripe.createSubscription);
   const [isUpgrading, setIsUpgrading] = useState(false);
 
-  if (company === undefined || billingHistory === undefined) {
+  if (company === undefined) {
     return (
       <div className="flex items-center justify-center h-full">
         <LoadingSpinner size="lg" />
@@ -25,7 +24,11 @@ export default function SubscriptionPage() {
     );
   }
 
-  const currentPlan = company.plan;
+  if (!company) {
+    return <div className="text-center py-12">User not found</div>;
+  }
+
+  const currentPlan = company.company.plan;
 
   const handleUpgrade = async (plan: PlanType) => {
     if (plan === currentPlan) {
@@ -35,8 +38,11 @@ export default function SubscriptionPage() {
 
     setIsUpgrading(true);
     try {
-      const checkoutUrl = await createCheckout({ planSlug: plan });
-      window.location.href = checkoutUrl;
+      const { sessionUrl } = await createSubscription({
+        userId: company.user._id,
+        planSlug: plan
+      });
+      window.location.href = sessionUrl;
     } catch (error: any) {
       toast.error("Failed to create checkout session", {
         description: error.message,
@@ -46,14 +52,7 @@ export default function SubscriptionPage() {
   };
 
   const handleManageSubscription = async () => {
-    try {
-      const portalUrl = await createCheckout({ planSlug: currentPlan! });
-      window.open(portalUrl, "_blank");
-    } catch (error: any) {
-      toast.error("Failed to open billing portal", {
-        description: error.message,
-      });
-    }
+    toast.info("Please contact support to manage your subscription");
   };
 
   return (
@@ -67,7 +66,7 @@ export default function SubscriptionPage() {
       </div>
 
       {/* Current Plan */}
-      {currentPlan && (
+      {currentPlan && PRICING[currentPlan] && (
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
@@ -83,10 +82,10 @@ export default function SubscriptionPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="text-2xl font-bold">
-                    {PRICING[currentPlan].name} Plan
+                    {PRICING[currentPlan as PlanType].name} Plan
                   </h3>
                   <p className="text-3xl font-bold text-primary mt-1">
-                    €{PRICING[currentPlan].price}
+                    €{PRICING[currentPlan as PlanType].price}
                     <span className="text-sm font-normal text-muted-foreground">
                       /month
                     </span>
@@ -98,7 +97,7 @@ export default function SubscriptionPage() {
               </div>
 
               <div className="grid gap-2">
-                {PRICING[currentPlan].features.map((feature, idx) => (
+                {PRICING[currentPlan as PlanType].features.map((feature, idx) => (
                   <div key={idx} className="flex items-center gap-2 text-sm">
                     <Check className="h-4 w-4 text-green-600" />
                     <span>{feature}</span>
@@ -110,8 +109,8 @@ export default function SubscriptionPage() {
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-muted-foreground">Next billing:</span>
                   <span className="font-medium">
-                    {company.nextRenewalDate
-                      ? new Date(company.nextRenewalDate).toLocaleDateString()
+                    {company.company.nextRenewalDate
+                      ? new Date(company.company.nextRenewalDate).toLocaleDateString()
                       : "N/A"}
                   </span>
                 </div>
@@ -120,8 +119,8 @@ export default function SubscriptionPage() {
                     Credits renew:
                   </span>
                   <span className="font-medium">
-                    {company.nextRenewalDate
-                      ? new Date(company.nextRenewalDate).toLocaleDateString()
+                    {company.company.nextRenewalDate
+                      ? new Date(company.company.nextRenewalDate).toLocaleDateString()
                       : "N/A"}
                   </span>
                 </div>
@@ -198,51 +197,16 @@ export default function SubscriptionPage() {
         </div>
       </div>
 
-      {/* Billing History */}
+      {/* Billing History - Coming Soon */}
       <Card>
         <CardHeader>
           <CardTitle>Billing History</CardTitle>
         </CardHeader>
         <CardContent>
-          {billingHistory.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              <CreditCard className="h-12 w-12 mx-auto mb-4 text-muted-foreground/50" />
-              <p>No billing history available</p>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {billingHistory.map((invoice: any) => (
-                <div
-                  key={invoice._id}
-                  className="flex items-center justify-between p-4 rounded-lg border"
-                >
-                  <div>
-                    <p className="font-medium">
-                      {new Date(invoice.createdAt).toLocaleDateString("en-US", {
-                        year: "numeric",
-                        month: "long",
-                        day: "numeric",
-                      })}
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      {invoice.description}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <div className="text-right">
-                      <p className="font-semibold">€{invoice.amount.toFixed(2)}</p>
-                      <Badge variant="outline" className="mt-1">
-                        {invoice.status === "paid" ? "Paid" : "Pending"}
-                      </Badge>
-                    </div>
-                    <Button variant="ghost" size="sm">
-                      <Download className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
+          <div className="text-center py-8 text-muted-foreground">
+            <CreditCard className="h-12 w-12 mx-auto mb-4 text-muted-foreground/50" />
+            <p>Billing history coming soon</p>
+          </div>
         </CardContent>
       </Card>
     </div>

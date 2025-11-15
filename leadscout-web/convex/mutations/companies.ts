@@ -215,6 +215,103 @@ export const updateProfile = mutation({
 });
 
 /**
+ * Create company during onboarding
+ * Called when user completes initial onboarding flow
+ */
+export const create = mutation({
+  args: {
+    companyName: v.string(),
+    website: v.optional(v.string()),
+    industry: v.string(),
+    teamSize: v.string(),
+    preferredCategories: v.array(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) {
+      throw new Error("Not authenticated");
+    }
+
+    // Find or create user
+    let user = await ctx.db
+      .query("users")
+      .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
+      .unique();
+
+    if (!user) {
+      // Create user if not exists
+      const userId = await ctx.db.insert("users", {
+        clerkId: identity.subject,
+        email: identity.email ?? "",
+        name: identity.name ?? args.companyName,
+        role: "company",
+        profile: {
+          companyName: args.companyName,
+          website: args.website,
+          industry: args.industry,
+          teamSize: args.teamSize,
+        },
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+      });
+      user = await ctx.db.get(userId);
+      if (!user) throw new Error("Failed to create user");
+    } else {
+      // Update user profile
+      await ctx.db.patch(user._id, {
+        profile: {
+          ...user.profile,
+          companyName: args.companyName,
+          website: args.website,
+          industry: args.industry,
+          teamSize: args.teamSize,
+        },
+        updatedAt: Date.now(),
+      });
+    }
+
+    // Check if company already exists
+    const existing = await ctx.db
+      .query("companies")
+      .withIndex("by_user", (q) => q.eq("userId", user._id))
+      .unique();
+
+    if (existing) {
+      // Update existing company preferences
+      await ctx.db.patch(existing._id, {
+        preferences: {
+          ...existing.preferences,
+          categories: args.preferredCategories,
+        },
+        updatedAt: Date.now(),
+      });
+      return { success: true, companyId: existing._id };
+    }
+
+    // Create new company with starter plan (free trial)
+    const companyId = await ctx.db.insert("companies", {
+      userId: user._id,
+      plan: "starter",
+      subscriptionStatus: "incomplete",
+      creditsRemaining: 0,
+      creditsAllocated: 0,
+      preferences: {
+        categories: args.preferredCategories,
+        notifications: {
+          newLeads: true,
+          lowCredits: true,
+          renewalReminder: true,
+        },
+      },
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    });
+
+    return { success: true, companyId };
+  },
+});
+
+/**
  * Create company from Stripe checkout
  * Called when new company signs up via Stripe
  */

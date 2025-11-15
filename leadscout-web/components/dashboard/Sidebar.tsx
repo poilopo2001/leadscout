@@ -65,9 +65,9 @@ export function Sidebar() {
             Credits Remaining
           </p>
           <p className="text-2xl font-bold text-foreground">
-            {company?.creditsRemaining ?? "..."}
+            {company?.company.creditsRemaining ?? "..."}
             <span className="text-sm font-normal text-muted-foreground ml-1">
-              /{company?.creditsAllocated ?? "..."}
+              /{company?.company.creditsAllocated ?? "..."}
             </span>
           </p>
           <Button size="sm" variant="outline" className="w-full mt-3" asChild>

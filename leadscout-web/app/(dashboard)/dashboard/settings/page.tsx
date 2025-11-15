@@ -47,16 +47,16 @@ export default function SettingsPage() {
   // Initialize form data when company loads
   if (company && !profileData.companyName) {
     setProfileData({
-      companyName: company.profile?.companyName || "",
-      website: company.profile?.website || "",
-      industry: company.profile?.industry || "",
-      teamSize: company.profile?.teamSize || "",
+      companyName: company.user.profile?.companyName || "",
+      website: company.user.profile?.website || "",
+      industry: company.user.profile?.industry || "",
+      teamSize: company.user.profile?.teamSize || "",
     });
     setPreferences({
-      categories: company.preferences?.categories || [],
-      budgetMin: company.preferences?.budgetMin || 0,
-      budgetMax: company.preferences?.budgetMax || 100000,
-      notifications: company.preferences?.notifications || {
+      categories: company.company.preferences?.categories || [],
+      budgetMin: company.company.preferences?.budgetMin || 0,
+      budgetMax: company.company.preferences?.budgetMax || 100000,
+      notifications: company.company.preferences?.notifications || {
         newLeads: true,
         lowCredits: true,
         renewalReminder: true,

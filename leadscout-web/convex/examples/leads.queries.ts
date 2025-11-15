@@ -31,7 +31,7 @@ export const getAvailableLeads = query({
       leadsQuery = ctx.db
         .query("leads")
         .withIndex("by_status_and_category", (q) =>
-          q.eq("status", "approved").eq("category", args.category)
+          q.eq("status", "approved").eq("category", args.category!)
         );
     }
 
