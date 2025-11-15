@@ -129,7 +129,7 @@ export default function MarketplacePage() {
           <div>
             <h1 className="text-3xl font-bold">Lead Marketplace</h1>
             <p className="text-muted-foreground mt-1">
-              {leads.length} lead{leads.length !== 1 ? "s" : ""} available
+              {leads.leads.length} lead{leads.leads.length !== 1 ? "s" : ""} available
             </p>
           </div>
           <select className="h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
@@ -140,7 +140,7 @@ export default function MarketplacePage() {
           </select>
         </div>
 
-        {leads.length === 0 ? (
+        {leads.leads.length === 0 ? (
           <Card>
             <CardContent className="pt-12 pb-12 text-center">
               <Search className="h-12 w-12 mx-auto mb-4 text-muted-foreground/50" />
@@ -155,7 +155,7 @@ export default function MarketplacePage() {
           </Card>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {leads.map((lead: any) => (
+            {leads.leads.map((lead: any) => (
               <LeadCard key={lead._id} lead={lead} />
             ))}
           </div>
