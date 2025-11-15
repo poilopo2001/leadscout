@@ -1,0 +1,167 @@
+name: Security Scan
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+  schedule:
+    # Run security scan daily at 2 AM UTC
+    - cron: "0 2 * * *"
+  workflow_dispatch:
+
+jobs:
+  dependency-audit:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./leadscout-web
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+          cache: "npm"
+          cache-dependency-path: leadscout-web/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run npm audit
+        run: npm audit --audit-level=moderate
+        continue-on-error: true
+
+      - name: Generate audit report
+        if: always()
+        run: npm audit --json > audit-report.json
+        continue-on-error: true
+
+      - name: Upload audit report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: npm-audit-report
+          path: leadscout-web/audit-report.json
+
+  secret-scanning:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history for comprehensive scan
+
+      - name: TruffleHog Secret Scan
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          base: ${{ github.event.repository.default_branch }}
+          head: HEAD
+          extra_args: --debug --only-verified
+
+  code-security:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: javascript, typescript
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+
+  security-headers:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Verify security headers configuration
+        run: |
+          # Check if security headers are configured in next.config.ts
+          if grep -q "X-Frame-Options" leadscout-web/next.config.ts && \
+             grep -q "Content-Security-Policy" leadscout-web/next.config.ts && \
+             grep -q "Strict-Transport-Security" leadscout-web/next.config.ts; then
+            echo "✅ Security headers configured"
+          else
+            echo "❌ Security headers missing or incomplete"
+            exit 1
+          fi
+
+      - name: Verify webhook signature verification
+        run: |
+          # Check if Stripe webhook has signature verification
+          if grep -q "stripe.webhooks.constructEvent" leadscout-web/app/api/webhooks/stripe/route.ts; then
+            echo "✅ Webhook signature verification implemented"
+          else
+            echo "❌ Webhook signature verification missing"
+            exit 1
+          fi
+
+  environment-check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check for hardcoded secrets
+        run: |
+          # Search for potential hardcoded secrets
+          if grep -r -E "(sk_live|pk_live|whsec|re_[a-zA-Z0-9]{20,})" leadscout-web/app leadscout-web/components leadscout-web/lib || \
+             grep -r -E "(sk_test|pk_test)" leadscout-web/app leadscout-web/components leadscout-web/lib; then
+            echo "❌ Potential hardcoded secrets found!"
+            exit 1
+          else
+            echo "✅ No hardcoded secrets detected"
+          fi
+
+      - name: Verify environment variable usage
+        run: |
+          # Check that sensitive values use process.env
+          if grep -r "process.env.STRIPE_SECRET_KEY" leadscout-web convex && \
+             grep -r "process.env.CLERK_SECRET_KEY" leadscout-web && \
+             grep -r "process.env.RESEND_API_KEY" convex; then
+            echo "✅ Environment variables properly used"
+          else
+            echo "⚠️ Warning: Verify environment variables are used for all secrets"
+          fi
+
+  summarize:
+    needs: [dependency-audit, secret-scanning, code-security, security-headers, environment-check]
+    if: always()
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Security Scan Summary
+        run: |
+          echo "## Security Scan Results"
+          echo ""
+          echo "- Dependency Audit: ${{ needs.dependency-audit.result }}"
+          echo "- Secret Scanning: ${{ needs.secret-scanning.result }}"
+          echo "- Code Security: ${{ needs.code-security.result }}"
+          echo "- Security Headers: ${{ needs.security-headers.result }}"
+          echo "- Environment Check: ${{ needs.environment-check.result }}"
+          echo ""
+
+          if [ "${{ needs.dependency-audit.result }}" == "failure" ] || \
+             [ "${{ needs.secret-scanning.result }}" == "failure" ] || \
+             [ "${{ needs.code-security.result }}" == "failure" ] || \
+             [ "${{ needs.security-headers.result }}" == "failure" ] || \
+             [ "${{ needs.environment-check.result }}" == "failure" ]; then
+            echo "❌ Security scan failed - review results above"
+            exit 1
+          else
+            echo "✅ All security checks passed"
+          fi
