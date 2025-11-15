@@ -15,8 +15,6 @@ import {
 import { useState } from "react";
 import { TrendingUp, DollarSign, ShoppingCart, Target } from "lucide-react";
 import {
-  LineChart,
-  Line,
   BarChart,
   Bar,
   PieChart,
@@ -52,7 +50,7 @@ export default function AnalyticsPage() {
     );
   }
 
-  const { summary, categoryPerformance, spendingTrend } = analytics;
+  const { overview, categoryBreakdown, topScouts } = analytics;
 
   return (
     <div className="space-y-6">
@@ -81,58 +79,25 @@ export default function AnalyticsPage() {
       <div className="grid gap-4 md:grid-cols-4">
         <StatCard
           title="Total Leads"
-          value={summary.totalLeadsPurchased}
+          value={overview.totalPurchases}
           icon={ShoppingCart}
         />
         <StatCard
           title="Total Spent"
-          value={`€${summary.totalSpend.toFixed(2)}`}
+          value={`€${overview.totalSpent.toFixed(2)}`}
           icon={DollarSign}
         />
         <StatCard
           title="Avg Lead Cost"
-          value={`€${summary.avgLeadCost.toFixed(2)}`}
+          value={`€${overview.avgPricePerLead.toFixed(2)}`}
           icon={Target}
         />
         <StatCard
-          title="Avg Quality"
-          value={`${summary.avgLeadQuality.toFixed(1)}/10`}
+          title="Credits Remaining"
+          value={overview.creditsRemaining}
           icon={TrendingUp}
         />
       </div>
-
-      {/* Spending Trend Chart */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Spending Trend</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {spendingTrend.length === 0 ? (
-            <div className="text-center py-12 text-muted-foreground">
-              No spending data available for this period
-            </div>
-          ) : (
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={spendingTrend}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="month" />
-                <YAxis />
-                <Tooltip
-                  formatter={(value: number) => `€${value.toFixed(2)}`}
-                />
-                <Legend />
-                <Line
-                  type="monotone"
-                  dataKey="spend"
-                  stroke="#0066FF"
-                  strokeWidth={2}
-                  name="Spending (€)"
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          )}
-        </CardContent>
-      </Card>
 
       <div className="grid gap-6 md:grid-cols-2">
         {/* Category Performance */}
@@ -141,19 +106,19 @@ export default function AnalyticsPage() {
             <CardTitle>Performance by Category</CardTitle>
           </CardHeader>
           <CardContent>
-            {categoryPerformance.length === 0 ? (
+            {categoryBreakdown.length === 0 ? (
               <div className="text-center py-12 text-muted-foreground">
                 No category data available
               </div>
             ) : (
               <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={categoryPerformance}>
+                <BarChart data={categoryBreakdown}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="category" />
                   <YAxis />
                   <Tooltip />
                   <Legend />
-                  <Bar dataKey="leadsCount" fill="#0066FF" name="Leads" />
+                  <Bar dataKey="count" fill="#0066FF" name="Leads" />
                 </BarChart>
               </ResponsiveContainer>
             )}
@@ -166,7 +131,7 @@ export default function AnalyticsPage() {
             <CardTitle>Category Distribution</CardTitle>
           </CardHeader>
           <CardContent>
-            {categoryPerformance.length === 0 ? (
+            {categoryBreakdown.length === 0 ? (
               <div className="text-center py-12 text-muted-foreground">
                 No category data available
               </div>
@@ -175,15 +140,15 @@ export default function AnalyticsPage() {
                 <ResponsiveContainer width="100%" height={250}>
                   <PieChart>
                     <Pie
-                      data={categoryPerformance}
-                      dataKey="totalSpend"
+                      data={categoryBreakdown}
+                      dataKey="totalSpent"
                       nameKey="category"
                       cx="50%"
                       cy="50%"
                       outerRadius={80}
                       label
                     >
-                      {categoryPerformance.map((entry, index) => (
+                      {categoryBreakdown.map((entry, index) => (
                         <Cell
                           key={`cell-${index}`}
                           fill={COLORS[index % COLORS.length]}
@@ -196,7 +161,7 @@ export default function AnalyticsPage() {
                   </PieChart>
                 </ResponsiveContainer>
                 <div className="space-y-2">
-                  {categoryPerformance.map((cat, index) => (
+                  {categoryBreakdown.map((cat, index) => (
                     <div
                       key={cat.category}
                       className="flex items-center justify-between text-sm"
@@ -209,8 +174,8 @@ export default function AnalyticsPage() {
                         <span>{cat.category}</span>
                       </div>
                       <div className="flex gap-4 text-muted-foreground">
-                        <span>{cat.leadsCount} leads</span>
-                        <span>€{cat.totalSpend.toFixed(2)}</span>
+                        <span>{cat.count} leads</span>
+                        <span>€{cat.totalSpent.toFixed(2)}</span>
                       </div>
                     </div>
                   ))}
@@ -227,13 +192,13 @@ export default function AnalyticsPage() {
           <CardTitle>Category Details</CardTitle>
         </CardHeader>
         <CardContent>
-          {categoryPerformance.length === 0 ? (
+          {categoryBreakdown.length === 0 ? (
             <div className="text-center py-12 text-muted-foreground">
               No category data available
             </div>
           ) : (
             <div className="space-y-3">
-              {categoryPerformance.map((cat, index) => (
+              {categoryBreakdown.map((cat, index) => (
                 <div
                   key={cat.category}
                   className="flex items-center justify-between p-4 rounded-lg border"
@@ -243,17 +208,17 @@ export default function AnalyticsPage() {
                       className="h-10 w-10 rounded-full flex items-center justify-center text-white font-bold"
                       style={{ backgroundColor: COLORS[index % COLORS.length] }}
                     >
-                      {cat.leadsCount}
+                      {cat.count}
                     </div>
                     <div>
                       <p className="font-semibold">{cat.category}</p>
                       <p className="text-sm text-muted-foreground">
-                        {cat.leadsCount} leads purchased
+                        {cat.count} leads purchased
                       </p>
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="font-semibold">€{cat.totalSpend.toFixed(2)}</p>
+                    <p className="font-semibold">€{cat.totalSpent.toFixed(2)}</p>
                     <p className="text-sm text-muted-foreground">
                       Avg: €{cat.avgCost.toFixed(2)}/lead
                     </p>
