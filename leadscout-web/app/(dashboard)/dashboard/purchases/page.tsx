@@ -66,7 +66,7 @@ export default function PurchasesPage() {
       p.lead?.category || "Unknown",
       `€${p.lead?.estimatedBudget || 0}`,
       p.lead?.contactEmail || "",
-      p.status || "new",
+      p.status || "completed",
     ]);
 
     const csvContent = [
@@ -121,9 +121,8 @@ export default function PurchasesPage() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Statuses</SelectItem>
-                <SelectItem value="new">New</SelectItem>
-                <SelectItem value="contacted">Contacted</SelectItem>
-                <SelectItem value="closed">Closed</SelectItem>
+                <SelectItem value="completed">Completed</SelectItem>
+                <SelectItem value="refunded">Refunded</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -187,14 +186,14 @@ export default function PurchasesPage() {
                     <TableCell>
                       <Badge
                         variant={
-                          purchase.status === "closed"
+                          purchase.status === "completed"
                             ? "default"
-                            : purchase.status === "contacted"
+                            : purchase.status === "refunded"
                             ? "secondary"
                             : "outline"
                         }
                       >
-                        {purchase.status || "new"}
+                        {purchase.status || "completed"}
                       </Badge>
                     </TableCell>
                     <TableCell className="text-right">
