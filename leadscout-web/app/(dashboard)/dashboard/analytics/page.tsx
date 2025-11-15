@@ -220,7 +220,7 @@ export default function AnalyticsPage() {
                   <div className="text-right">
                     <p className="font-semibold">€{cat.totalSpent.toFixed(2)}</p>
                     <p className="text-sm text-muted-foreground">
-                      Avg: €{cat.avgCost.toFixed(2)}/lead
+                      Avg: €{cat.avgPrice.toFixed(2)}/lead
                     </p>
                   </div>
                 </div>
