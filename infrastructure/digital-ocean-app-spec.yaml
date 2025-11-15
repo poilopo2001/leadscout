@@ -8,8 +8,8 @@ region: fra  # Frankfurt - change to nyc, sfo, sgp, etc. as needed
 static_sites:
   - name: leadscout-web
     github:
-      repo: YOUR_GITHUB_USERNAME/leadscout  # UPDATE THIS
-      branch: main
+      repo: poilopo2001/leadscout
+      branch: master
       deploy_on_push: true
 
     # Build configuration
@@ -29,11 +29,11 @@ static_sites:
 
       # Clerk Authentication (REQUIRED)
       - key: NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
-        value: "REPLACE_WITH_PRODUCTION_CLERK_PUBLISHABLE_KEY"
+        value: "pk_test_cHVtcGVkLW1vbmtleS0xOS5jbGVyay5hY2NvdW50cy5kZXYk"
         type: SECRET
 
       - key: CLERK_SECRET_KEY
-        value: "REPLACE_WITH_PRODUCTION_CLERK_SECRET_KEY"
+        value: "sk_test_9UlUSn24mZioxeI2edVAyjdpAGW1f18KZa201EORls"
         type: SECRET
 
       - key: NEXT_PUBLIC_CLERK_SIGN_IN_URL
@@ -50,11 +50,11 @@ static_sites:
 
       # Convex Backend (REQUIRED)
       - key: NEXT_PUBLIC_CONVEX_URL
-        value: "REPLACE_WITH_PRODUCTION_CONVEX_URL"
+        value: "https://wry-gnu-485.convex.cloud"
         type: SECRET
 
       - key: CONVEX_DEPLOY_KEY
-        value: "REPLACE_WITH_CONVEX_DEPLOY_KEY"
+        value: "prod:wry-gnu-485|eyJ2MiI6ImU3NmRjM2JiOTZiNDQ5MzhhM2MzZTUwZDRkMzYwM2RjIn0="
         type: SECRET
 
       # Stripe Payments (REQUIRED - Use LIVE keys for production)

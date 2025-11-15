@@ -8,7 +8,7 @@
 import { QueryCtx, MutationCtx } from "./_generated/server";
 import { Id } from "./_generated/dataModel";
 import { getLeadPriceByCategory, getCommissionRate, getBadgeThresholds } from "./lib/constants";
-import { calculateScoutQualityScore } from "./lib/calculateScoutQuality";
+import { calculateScoutQuality } from "./lib/calculateScoutQuality";
 
 /**
  * Get current authenticated user from context
@@ -117,10 +117,12 @@ export async function calculateScoutQuality(
   const scout = await ctx.db.get(scoutId);
   if (!scout) return 0;
 
-  return calculateScoutQualityScore({
-    totalSubmitted: scout.totalLeadsSubmitted,
-    totalSold: scout.totalLeadsSold,
-    qualityScore: scout.qualityScore,
+  return calculateScoutQuality({
+    totalLeadsSubmitted: scout.totalLeadsSubmitted,
+    totalLeadsApproved: scout.totalLeadsApproved || scout.totalLeadsSubmitted,
+    totalLeadsSold: scout.totalLeadsSold,
+    totalLeadsRejected: scout.totalLeadsRejected || 0,
+    averageLeadQuality: scout.qualityScore,
   });
 }
 

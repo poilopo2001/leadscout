@@ -7,7 +7,7 @@
 import { mutation } from "../_generated/server";
 import { v } from "convex/values";
 import { getCurrentScout, updateScoutBadge } from "../helpers";
-import { calculateScoutQualityScore } from "../lib/calculateScoutQuality";
+import { calculateScoutQuality } from "../lib/calculateScoutQuality";
 
 /**
  * Update scout profile
@@ -88,10 +88,12 @@ export const updateQualityScore = mutation({
         : 5; // Default 5 if no sold leads yet
 
     // Use quality calculation helper
-    const newQualityScore = calculateScoutQualityScore({
-      totalSubmitted,
-      totalSold,
-      qualityScore: avgLeadQuality,
+    const newQualityScore = calculateScoutQuality({
+      totalLeadsSubmitted: totalSubmitted,
+      totalLeadsApproved: totalSubmitted, // Approximation
+      totalLeadsSold: totalSold,
+      totalLeadsRejected: 0,
+      averageLeadQuality: avgLeadQuality,
     });
 
     // Update scout
