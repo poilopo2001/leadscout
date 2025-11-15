@@ -11,18 +11,37 @@ import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
 import { CreditCard, ShoppingCart, TrendingUp, DollarSign } from "lucide-react";
 
 export default function DashboardPage() {
-  const stats = useQuery(api.queries.companies.getMyStats);
-  const recentPurchases = useQuery(api.queries.companies.getRecentPurchases, {
+  // Use getMyAnalytics for dashboard stats (last 30 days)
+  const startDate = Date.now() - 30 * 24 * 60 * 60 * 1000;
+  const endDate = Date.now();
+
+  const analytics = useQuery(api.queries.companies.getMyAnalytics, {
+    startDate,
+    endDate,
+  });
+
+  const purchasesData = useQuery(api.queries.companies.getMyPurchases, {
     limit: 5,
   });
 
-  if (stats === undefined || recentPurchases === undefined) {
+  if (analytics === undefined || purchasesData === undefined) {
     return (
       <div className="flex items-center justify-center h-full">
         <LoadingSpinner size="lg" />
       </div>
     );
   }
+
+  // Map analytics data to stats format expected by components
+  const stats = {
+    creditsRemaining: analytics.overview.creditsRemaining,
+    creditsAllocated: analytics.overview.creditsAllocated,
+    totalLeadsPurchased: analytics.overview.totalPurchases,
+    totalSpend: analytics.overview.totalSpent,
+    avgLeadCost: analytics.overview.avgPricePerLead,
+  };
+
+  const recentPurchases = purchasesData.purchases;
 
   return (
     <div className="space-y-8">
@@ -46,13 +65,11 @@ export default function DashboardPage() {
         <StatCard
           title="Leads Purchased"
           value={stats.totalLeadsPurchased}
-          trend={stats.purchaseTrend}
           icon={ShoppingCart}
         />
         <StatCard
           title="Total Spent"
           value={`€${stats.totalSpend.toFixed(2)}`}
-          trend={stats.spendTrend}
           icon={DollarSign}
         />
         <StatCard
@@ -102,11 +119,11 @@ export default function DashboardPage() {
                   className="flex items-center justify-between border-b last:border-0 pb-4 last:pb-0"
                 >
                   <div className="flex-1">
-                    <p className="font-medium">{purchase.leadTitle}</p>
+                    <p className="font-medium">{purchase.lead?.title || "Lead"}</p>
                     <div className="flex items-center gap-2 mt-1">
-                      <Badge variant="outline">{purchase.category}</Badge>
+                      <Badge variant="outline">{purchase.lead?.category || "Unknown"}</Badge>
                       <span className="text-sm text-muted-foreground">
-                        {new Date(purchase._creationTime).toLocaleDateString()}
+                        {new Date(purchase.createdAt).toLocaleDateString()}
                       </span>
                     </div>
                   </div>
