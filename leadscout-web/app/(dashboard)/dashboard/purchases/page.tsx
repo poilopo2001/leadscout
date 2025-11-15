@@ -30,11 +30,11 @@ export default function PurchasesPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
 
-  const purchases = useQuery(api.queries.companies.getMyPurchases, {
+  const purchasesData = useQuery(api.queries.companies.getMyPurchases, {
     limit: 100,
   });
 
-  if (purchases === undefined) {
+  if (purchasesData === undefined) {
     return (
       <div className="flex items-center justify-center h-full">
         <LoadingSpinner size="lg" />
@@ -42,11 +42,14 @@ export default function PurchasesPage() {
     );
   }
 
-  const filteredPurchases = purchases.filter((purchase) => {
+  const filteredPurchases = purchasesData.purchases.filter((purchase) => {
+    const leadTitle = purchase.lead?.title || "";
+    const category = purchase.lead?.category || "";
+
     const matchesSearch =
       !searchQuery ||
-      purchase.leadTitle.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      purchase.category.toLowerCase().includes(searchQuery.toLowerCase());
+      leadTitle.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      category.toLowerCase().includes(searchQuery.toLowerCase());
 
     const matchesStatus =
       statusFilter === "all" || purchase.status === statusFilter;
@@ -58,11 +61,11 @@ export default function PurchasesPage() {
     // Generate CSV content
     const headers = ["Date", "Title", "Category", "Budget", "Contact", "Status"];
     const rows = filteredPurchases.map((p) => [
-      new Date(p._creationTime).toLocaleDateString(),
-      p.leadTitle,
-      p.category,
-      `€${p.estimatedBudget}`,
-      p.contactEmail,
+      new Date(p.createdAt).toLocaleDateString(),
+      p.lead?.title || "Lead",
+      p.lead?.category || "Unknown",
+      `€${p.lead?.estimatedBudget || 0}`,
+      p.lead?.contactEmail || "",
       p.status || "new",
     ]);
 
@@ -169,17 +172,17 @@ export default function PurchasesPage() {
                 {filteredPurchases.map((purchase) => (
                   <TableRow key={purchase._id}>
                     <TableCell className="text-muted-foreground">
-                      {new Date(purchase._creationTime).toLocaleDateString()}
+                      {new Date(purchase.createdAt).toLocaleDateString()}
                     </TableCell>
                     <TableCell className="font-medium">
-                      {purchase.leadTitle}
+                      {purchase.lead?.title || "Lead"}
                     </TableCell>
                     <TableCell>
-                      <Badge variant="outline">{purchase.category}</Badge>
+                      <Badge variant="outline">{purchase.lead?.category || "Unknown"}</Badge>
                     </TableCell>
-                    <TableCell>€{purchase.estimatedBudget.toLocaleString()}</TableCell>
+                    <TableCell>€{(purchase.lead?.estimatedBudget || 0).toLocaleString()}</TableCell>
                     <TableCell className="max-w-[200px] truncate">
-                      {purchase.contactEmail}
+                      {purchase.lead?.contactEmail || "N/A"}
                     </TableCell>
                     <TableCell>
                       <Badge
@@ -200,7 +203,7 @@ export default function PurchasesPage() {
                         size="sm"
                         onClick={() => {
                           // Show lead details in a dialog
-                          alert(`Lead Details:\n\nCompany: ${purchase.companyName}\nContact: ${purchase.contactName}\nEmail: ${purchase.contactEmail}\nPhone: ${purchase.contactPhone}`);
+                          alert(`Lead Details:\n\nCompany: ${purchase.lead?.companyName || "N/A"}\nContact: ${purchase.lead?.contactName || "N/A"}\nEmail: ${purchase.lead?.contactEmail || "N/A"}\nPhone: ${purchase.lead?.contactPhone || "N/A"}`);
                         }}
                       >
                         <Eye className="h-4 w-4 mr-1" />
