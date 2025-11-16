@@ -35,10 +35,10 @@ const nextConfig: NextConfig = {
             key: "Content-Security-Policy",
             value: [
               "default-src 'self'",
-              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://clerk.leadscout.app https://*.clerk.accounts.dev https://js.stripe.com https://*.convex.cloud https://*.convex.site",
-              "style-src 'self' 'unsafe-inline'",
+              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://clerk.leadscout.app https://*.clerk.accounts.dev https://*.clerk.com https://*.ondigitalocean.app https://js.stripe.com https://*.convex.cloud https://*.convex.site",
+              "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
               "img-src 'self' data: blob: https://*.clerk.com https://img.clerk.com https://images.unsplash.com",
-              "font-src 'self' data:",
+              "font-src 'self' data: https://fonts.gstatic.com",
               "connect-src 'self' https://*.clerk.accounts.dev https://clerk.leadscout.app https://api.stripe.com https://*.convex.cloud https://*.convex.site wss://*.convex.cloud wss://*.convex.site",
               "frame-src 'self' https://js.stripe.com https://hooks.stripe.com https://*.clerk.accounts.dev",
               "object-src 'none'",
